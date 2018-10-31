@@ -7,6 +7,7 @@
 model BHH
 
 global {
+	file river_region_shapefile <- file("../includes/SongBHH_region.shp");
 	file river_shapefile <- file("../includes/river_simple1.shp");
 	file tram_mua_shapefile <- file("../includes/TramMua.shp");
 	file MN_10Cong_20152017 <- csv_file("../includes/MN_10Cong_20152017.csv", ",");
@@ -19,6 +20,7 @@ global {
 	matrix<float, float> data <- matrix<float>(matrix(MN_10Cong_20152017));
 
 	init {
+		create River_region from: river_region_shapefile;
 		create River from: river_shapefile;
 		//		write tram_mua_shapefile.contents;
 		create Station from: tram_mua_shapefile;
@@ -40,6 +42,13 @@ global {
 		the_graph <- as_edge_graph(list(River));
 		the_graph <- the_graph with_optimizer_type "NBAStarApprox";
 		//		do regen;
+//		create people number: 650 {
+//			b <- any(River_region); 
+//			location <- any_location_in(b); 
+//
+//			t <- b.points farthest_to location;
+//		}
+
 	}
 
 	action regen {
@@ -75,8 +84,8 @@ global {
 	reflex gen when: source.ll = 0 {
 	//			reflex gen {
 	//			loop times: 20 {
-		do regen;
-		//			}
+			do regen;
+	//			}
 
 	}
 
@@ -104,10 +113,11 @@ species water skills: [moving] {
 	list<River> rr <- [];
 
 	reflex regen {
-		list<River> o <- ((River - myRiver) overlapping self);
+//		write current_edge as River;
+		list<River> o <- ((River - River(current_edge)) overlapping self);
 		rr <- River - o; //((River - o) overlapping self);
 		rr <- (rr where ((each.shape.points closest_to self) distance_to self < size));
-		list<water> ww <- (water) at_distance (size * 2) where (each.myRiver = self.myRiver);
+		list<water> ww <- (water) at_distance (size * 2) where (each.current_edge = self.current_edge);
 		//		write ww;
 		if (length(rr) > 0 and length(ww) < 1) {
 		//							write rr;
@@ -117,17 +127,17 @@ species water skills: [moving] {
 			//				write self;
 				create water {
 					myRiver <- myself;
-//					if (flip(0.5)) {
-						location <- myself.shape.points closest_to w.location;
-						target <- myself.shape.points farthest_to w.location;
-//						location<-first(myself.shape.points);
-//						target<-last(myself.shape.points);
-//					} else {
-////						location <- myself.shape.points farthest_to w.location;
-////						target <- myself.shape.points closest_to w.location;
-//						location<-last(myself.shape.points);
-//						target<-first(myself.shape.points);
-//					}
+					//					if (flip(0.5)) {
+					location <- myself.shape.points closest_to w.location;
+					target <- myself.shape.points farthest_to w.location;
+					//						location<-first(myself.shape.points);
+					//						target<-last(myself.shape.points);
+					//					} else {
+					////						location <- myself.shape.points farthest_to w.location;
+					////						target <- myself.shape.points closest_to w.location;
+					//						location<-last(myself.shape.points);
+					//						target<-first(myself.shape.points);
+					//					}
 					//						location <- any_location_in(myself);
 					//						target <- flip(0.9) ? any_location_in(dest) : any_location_in(myself);
 					//					location <- (myRiver.shape.points closest_to source.location);
@@ -156,6 +166,47 @@ species water skills: [moving] {
 
 }
 
+species people skills: [moving] {
+	float size <- 0.0015;
+	float sp <- 0.0005;
+	geometry b <- circle(1);
+	geometry shape <- circle(size);
+	float range <- size * 2;
+	int repulsion_strength min: 1 <- 5;
+	point t;
+
+	reflex ss {
+	//	do goto target:t on:b speed:sp ;
+	//	if(location=t){		
+	//			t<-b.points farthest_to location;
+	//	}
+	//people close <- one_of ( ( (self neighbors_at range) of_species people) sort_by (self distance_to each) );
+	//		if close != nil {
+	//			heading <- (self towards close) - 180;
+	//			float dist <- self distance_to close;
+	//			do move bounds:b speed:  dist / repulsion_strength heading: heading;
+	//		}
+		do wander bounds: b speed: sp;
+	}
+
+	aspect default {
+		draw shape color: color;
+	}
+
+}
+
+species River_region {
+	float rrr <- ((1 + rnd(3)) / 1000);
+	rgb color <- rnd_color(255);
+
+	aspect default {
+		draw shape color: #cyan; //rnd_color(255)  ;
+		//		draw shape + rrr color: color;
+		//		draw ""+shape.area*10000 at:first(shape.points);
+	}
+
+}
+
 species River {
 	float rrr <- ((1 + rnd(3)) / 1000);
 	rgb color <- rnd_color(255);
@@ -180,7 +231,7 @@ species Station {
 	reflex ss {
 		list vv <- water at_distance 0.05;
 		ll <- length(vv);
-		if (ll > 0) {
+		if (ll > 0) { 
 			(vv[0]).color <- #green;
 		}
 
@@ -197,9 +248,11 @@ species Station {
 experiment "main" type: gui {
 	output {
 		display "s" type: opengl {
+			species River_region aspect: default;
+			species people aspect: default;
 			species River aspect: default;
-			species Station aspect: default;
 			species water;
+			species Station aspect: default;
 		}
 
 	}
