@@ -245,12 +245,17 @@ species River {
 }
 
 species Station {
+	rgb color<-rnd_color(255);
 	list<float> heso <- [];
+	float hh<-0.0;
 	string Name;
 	int ll <- 0;
 	geometry shape <- rectangle(0.005, 0.0025);
 
-	reflex ss {
+	reflex ss { 
+		if(length(heso)>0){			
+			hh<- heso[cycle mod 4388];
+		}
 		list vv <- water at_distance 0.05;
 		ll <- length(vv);
 		if (ll > 0) { 
@@ -262,7 +267,7 @@ species Station {
 	aspect default {
 		draw shape color: #red;
 		draw circle(0.009) color: #red empty: true;
-		draw Name + " " + heso[cycle mod 4388] + " " + ll size: 10 at: location + 0.02;
+		draw Name + " " + heso[cycle mod 4388] + " " + ll size: 10 at: location + 0.002;
 	}
 
 }
@@ -276,6 +281,24 @@ experiment "main" type: gui {
 			species River aspect: default;
 			species water;
 			species Station aspect: default;
+		}
+		display "c"{
+			
+			chart "Observed" type: series background: #white {
+//				data 'S' value: first(agent_with_SIR_dynamic).S color: #green ;	
+				loop s over:Station{
+					data ''+s.Name value: s.hh color: s.color marker:false ;	
+				}
+			}
+		}
+		display "c2"{
+			
+			chart "Simulated" type: series background: #white {
+//				data 'S' value: first(agent_with_SIR_dynamic).S color: #green ;	
+				loop s over:Station{
+					data ''+s.Name value: s.ll color: s.color marker:false ;	
+				}
+			}
 		}
 
 	}
