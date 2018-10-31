@@ -39,23 +39,23 @@ global {
 		dest <- (Station where (each.Name = "Song Thai Binh"))[0];
 		the_graph <- as_edge_graph(list(River));
 		the_graph <- the_graph with_optimizer_type "NBAStarApprox";
-//		do regen;
+		//		do regen;
 	}
 
 	action regen {
 	//		ask source {
-				ask River overlapping source {
-//				ask River[1] {
-//		ask any(River) {
+		ask River overlapping source {
+		//				ask River[1] {
+		//		ask any(River) {
 			create water {
 				myRiver <- myself;
-//				location <- any_location_in(myRiver);
-//				target <- any_location_in(myRiver);
+				//				location <- any_location_in(myRiver);
+				//				target <- any_location_in(myRiver);
 				//					target <- flip(0.9) ? any_location_in(dest) : any_location_in(myself);
-									location <- (myRiver.shape.points closest_to source.location);
-									target <- (myRiver.shape.points farthest_to source.location);
-//									target <- (myRiver.shape.points closest_to source.location);
-//									location <- (myRiver.shape.points farthest_to source.location);
+				location <- (myRiver.shape.points closest_to source.location);
+				target <- (myRiver.shape.points farthest_to source.location);
+				//									target <- (myRiver.shape.points closest_to source.location);
+				//									location <- (myRiver.shape.points farthest_to source.location);
 				//				location <- flip(0.5) ? first(myself.shape.points) : any_location_in(myself);
 				//				target <- flip(0.5) ? last(myself.shape.points) : any_location_in(myself);
 				//						target <- flip(0.9) ? any_location_in(dest) : any_location_in(myself);
@@ -71,9 +71,9 @@ global {
 
 	}
 
-//	reflex gen when: flip(0.05) {
-		reflex gen when: source.ll = 0 {
-//			reflex gen {
+	//	reflex gen when: flip(0.05) {
+	reflex gen when: source.ll = 0 {
+	//			reflex gen {
 	//			loop times: 20 {
 		do regen;
 		//			}
@@ -90,25 +90,26 @@ species water skills: [moving] {
 	float sp <- 0.005;
 	//	geometry shape <- circle(size);
 	geometry shape <- rectangle(size * 2, size);
-//	int flag <- 0;
-
+	//	int flag <- 0;
 	aspect default {
 		draw shape color: color rotate: heading;
-//		draw circle(0.0045) color: color empty: true;
-//		draw line(location, target) color: #red;
-//		ask rr{
-//			
-//			draw line(myself.location, self.shape.points[0]) color: #red;
-//		}
+		//		draw circle(0.0045) color: color empty: true;
+		//		draw line(location, target) color: #red;
+		//		ask rr{
+		//			
+		//			draw line(myself.location, self.shape.points[0]) color: #red;
+		//		}
 	}
-list<River> rr<-[];
-	reflex regen  {
+
+	list<River> rr <- [];
+
+	reflex regen {
 		list<River> o <- ((River - myRiver) overlapping self);
 		rr <- River - o; //((River - o) overlapping self);
-		rr <- (rr where ((each.shape.points closest_to self) distance_to self < size ));
-		list<water> ww<-(water)at_distance (size*2) where (each.myRiver=self.myRiver);
-				write ww;
-		if (length(rr) > 0 and length(ww)<1) {
+		rr <- (rr where ((each.shape.points closest_to self) distance_to self < size));
+		list<water> ww <- (water) at_distance (size * 2) where (each.myRiver = self.myRiver);
+		//		write ww;
+		if (length(rr) > 0 and length(ww) < 1) {
 		//							write rr;
 			water w <- self;
 			//			write length(rr);
@@ -116,14 +117,17 @@ list<River> rr<-[];
 			//				write self;
 				create water {
 					myRiver <- myself;
-					//					if(flip(0.5)){
-					location <- myself.shape.points closest_to w.location;
-					target <- myself.shape.points farthest_to w.location;
-					//					}else{
-//															target <- myself.shape.points closest_to w.location;
-//															location <- myself.shape.points farthest_to w.location;
-					//						
-					//					}
+//					if (flip(0.5)) {
+						location <- myself.shape.points closest_to w.location;
+						target <- myself.shape.points farthest_to w.location;
+//						location<-first(myself.shape.points);
+//						target<-last(myself.shape.points);
+//					} else {
+////						location <- myself.shape.points farthest_to w.location;
+////						target <- myself.shape.points closest_to w.location;
+//						location<-last(myself.shape.points);
+//						target<-first(myself.shape.points);
+//					}
 					//						location <- any_location_in(myself);
 					//						target <- flip(0.9) ? any_location_in(dest) : any_location_in(myself);
 					//					location <- (myRiver.shape.points closest_to source.location);
@@ -132,19 +136,19 @@ list<River> rr<-[];
 
 			}
 
-//			flag <- 0;
+			//			flag <- 0;
 		}
 
 	}
 
 	reflex movement {
-//		flag <- flag + 1;
+	//		flag <- flag + 1;
 		do goto on: the_graph target: target speed: sp;
-//		if (target != nil and location distance_to target <= sp) {
+		//		if (target != nil and location distance_to target <= sp) {
 		//				location <- any_location_in(any(River));
-//			target <- any_location_in(any(River));
-					if(location=target){
-								do die;
+		//			target <- any_location_in(any(River));
+		if (location = target) {
+			do die;
 			//			target <- any_location_in(one_of(River));
 		}
 
