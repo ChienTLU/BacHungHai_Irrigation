@@ -7,6 +7,7 @@
 model BHH
 
 global {
+	file system_region_shapefile <- file("../includes/BHHSystem_region.shp");
 	file river_region_shapefile <- file("../includes/SongBHH_region.shp");
 	file river_shapefile <- file("../includes/river_simple1.shp");
 	file tram_mua_shapefile <- file("../includes/TramMua.shp");
@@ -20,6 +21,7 @@ global {
 	matrix<float, float> data <- matrix<float>(matrix(MN_10Cong_20152017));
 
 	init {
+		create System_region from: system_region_shapefile;
 		create River_region from: river_region_shapefile;
 		create River from: river_shapefile;
 		//		write tram_mua_shapefile.contents;
@@ -42,7 +44,8 @@ global {
 		the_graph <- as_edge_graph(list(River));
 		the_graph <- the_graph with_optimizer_type "NBAStarApprox";
 		//		do regen;
-//		create people number: 650 {
+		
+//		create people number: 1650 {
 //			b <- any(River_region); 
 //			location <- any_location_in(b); 
 //
@@ -98,10 +101,11 @@ species water skills: [moving] {
 	float size <- 0.005;
 	float sp <- 0.005;
 	//	geometry shape <- circle(size);
-	geometry shape <- rectangle(size * 2, size);
+	geometry shape <- rectangle(size * 2, size*0.5);
+//	geometry shape <- triangle(size*0.5);
 	//	int flag <- 0;
 	aspect default {
-		draw shape color: color rotate: heading;
+		draw shape color: color rotate: heading ;
 		//		draw circle(0.0045) color: color empty: true;
 		//		draw line(location, target) color: #red;
 		//		ask rr{
@@ -154,10 +158,10 @@ species water skills: [moving] {
 	reflex movement {
 	//		flag <- flag + 1;
 		do goto on: the_graph target: target speed: sp;
-		//		if (target != nil and location distance_to target <= sp) {
+				if (target != nil and location distance_to target <= sp) {
 		//				location <- any_location_in(any(River));
 		//			target <- any_location_in(any(River));
-		if (location = target) {
+//		if (location = target) {
 			do die;
 			//			target <- any_location_in(one_of(River));
 		}
@@ -168,7 +172,7 @@ species water skills: [moving] {
 
 species people skills: [moving] {
 	float size <- 0.0015;
-	float sp <- 0.0005;
+	float sp <- 0.001;
 	geometry b <- circle(1);
 	geometry shape <- circle(size);
 	float range <- size * 2;
@@ -187,6 +191,10 @@ species people skills: [moving] {
 	//			do move bounds:b speed:  dist / repulsion_strength heading: heading;
 	//		}
 		do wander bounds: b speed: sp;
+		do move bounds: b  heading: self towards t speed: sp;
+		if(location=t){		
+				t<-b.points farthest_to location;
+		}
 	}
 
 	aspect default {
@@ -207,6 +215,20 @@ species River_region {
 
 }
 
+species System_region {
+	float rrr <- ((1 + rnd(3)) / 1000);
+	rgb color <- rnd_color(255);
+
+	reflex ss {
+	//		write River where (each touches self);
+	}
+
+	aspect default {
+		draw shape color: rgb (192, 192, 192,255); //rnd_color(255)  ;
+		//				draw shape+rrr color:color  ;
+	}
+
+}
 species River {
 	float rrr <- ((1 + rnd(3)) / 1000);
 	rgb color <- rnd_color(255);
@@ -226,7 +248,7 @@ species Station {
 	list<float> heso <- [];
 	string Name;
 	int ll <- 0;
-	geometry shape <- rectangle(0.005, 0.005);
+	geometry shape <- rectangle(0.005, 0.0025);
 
 	reflex ss {
 		list vv <- water at_distance 0.05;
@@ -238,9 +260,9 @@ species Station {
 	}
 
 	aspect default {
-		draw rectangle(0.005, 0.005) color: #red;
+		draw shape color: #red;
 		draw circle(0.009) color: #red empty: true;
-		draw Name + " " + heso[cycle mod 4388] + " " + ll size: 10 at: location - 0.02;
+		draw Name + " " + heso[cycle mod 4388] + " " + ll size: 10 at: location + 0.02;
 	}
 
 }
@@ -248,6 +270,7 @@ species Station {
 experiment "main" type: gui {
 	output {
 		display "s" type: opengl {
+			species System_region aspect: default;
 			species River_region aspect: default;
 			species people aspect: default;
 			species River aspect: default;
